@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>羊毛货架 · 卡片管理台</title>
+  <link rel="stylesheet" href="css/style.css?v=17">
+  <style>
+    body { background: var(--bg); }
+
+    .admin-wrap { max-width: 1180px; margin: 0 auto; padding: 28px 20px 60px; }
+
+    .admin-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+    .admin-head h1 { margin: 0; font-size: 22px; }
+    .admin-head p { margin: 6px 0 0; color: var(--text-3); font-size: 13px; }
+    .admin-head .btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+      padding: 20px;
+      margin-top: 20px;
+    }
+    .panel h2 { margin: 0 0 14px; font-size: 15px; display: flex; align-items: center; gap: 8px; }
+    .panel h2 .n { color: var(--text-3); font-weight: 400; font-size: 12.5px; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px 16px; }
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 12px; color: var(--text-2); font-weight: 600; }
+    .field input, .field select, .field textarea {
+      font: inherit; font-size: 13px; padding: 8px 10px; border: 1px solid var(--border);
+      border-radius: 8px; background: #fff; color: var(--text); outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--primary); box-shadow: 0 0 0 3px rgba(47, 98, 240, .14);
+    }
+    .field .hint { font-size: 11px; color: var(--text-3); }
+    .field--full { grid-column: 1 / -1; }
+    .checks { display: flex; gap: 14px; flex-wrap: wrap; padding-top: 2px; }
+    .check {
+      display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500;
+      color: var(--text); cursor: pointer; user-select: none;
+    }
+    .check input { width: 15px; height: 15px; accent-color: var(--primary); cursor: pointer; margin: 0; }
+
+    .row-actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; align-items: center; }
+
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px; font: inherit; font-size: 13px;
+      padding: 9px 16px; border-radius: 10px; border: 1px solid var(--border); background: #fff;
+      color: var(--text); cursor: pointer; text-decoration: none;
+      transition: all .15s var(--ease);
+    }
+    .btn:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+    .btn--primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+    .btn--primary:hover { background: var(--primary-hover); border-color: var(--primary-hover); }
+    .btn--danger { color: #dc2626; border-color: #f3c8c8; }
+    .btn--danger:hover { background: #fef2f2; border-color: #e8a9a9; }
+    .btn--sm { padding: 5px 10px; font-size: 12px; border-radius: 8px; }
+
+    /* 卡片列表 */
+    .item-list { display: flex; flex-direction: column; gap: 8px; }
+    .item {
+      display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+      border: 1px solid var(--border); border-radius: 10px; background: var(--surface-2);
+    }
+    .item .idx { width: 26px; text-align: center; color: var(--text-3); font-size: 12px; }
+    .item .logo { width: 30px; height: 30px; border-radius: 8px; overflow: hidden; flex: none; display: grid; place-items: center; }
+    .item .logo img { width: 100%; height: 100%; object-fit: contain; }
+    .item .meta { flex: 1; min-width: 0; }
+    .item .meta b { font-size: 13.5px; }
+    .item .meta span { color: var(--text-3); font-size: 11.5px; margin-left: 8px; }
+    .item .ops { display: flex; gap: 6px; flex: none; }
+    .item--offline { opacity: .55; border-style: dashed; }
+    .badge {
+      display: inline-flex; align-items: center; margin-left: 7px;
+      padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; line-height: 1.7;
+    }
+    .badge--pick {
+      background: linear-gradient(180deg, #ffe7a3, #f0bd4a);
+      color: #5a3a05; border: 1px solid #c2911a;
+    }
+    .badge--off { background: #fee2e2; color: #b91c1c; border: 1px solid #f3b4b4; }
+
+    /* 预览 */
+    .preview-box { display: grid; grid-template-columns: repeat(auto-fill, minmax(278px, 1fr)); gap: 16px; }
+    .preview-box .card { cursor: default; }
+
+    /* 输出区 */
+    .out-wrap { position: relative; }
+    .out {
+      font: inherit; font-size: 12px; line-height: 1.6; width: 100%; min-height: 220px;
+      padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: #0f1420;
+      color: #c8d3e8; resize: vertical; outline: none; white-space: pre;
+    }
+    .out:focus { border-color: var(--primary); }
+
+    .toast--admin {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #1c2230; color: #fff; padding: 10px 18px; border-radius: 999px;
+      font-size: 13px; box-shadow: var(--shadow-md); z-index: 300;
+      animation: toastIn .25s var(--ease) both;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
+
+    .empty-tip { color: var(--text-3); font-size: 13px; text-align: center; padding: 24px; }
+
+    /* 隐蔽入口遮罩 */
+    .gate {
+      position: fixed; inset: 0; z-index: 999;
+      display: grid; place-items: center;
+      background: var(--bg);
+    }
+    .gate[hidden] { display: none; }
+    .gate__box {
+      text-align: center; padding: 40px 32px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; box-shadow: var(--shadow-md); max-width: 340px;
+    }
+    .gate__emoji { font-size: 44px; }
+    .gate__text { margin: 12px 0 4px; font-size: 16px; font-weight: 700; }
+    .gate__hint { margin: 0 0 18px; font-size: 12.5px; color: var(--text-3); line-height: 1.7; }
+
+    @media (max-width: 720px) {
+      .form-grid { grid-template-columns: 1fr; }
+      .admin-head { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <!-- 默认隐藏；只在带一次性口令从首页隐蔽入口进入时才展现 -->
+  <div class="admin-wrap" id="adminWrap" hidden>
+    <div class="admin-head">
+      <div>
+        <h1>🧺 羊毛货架 · 卡片管理台</h1>
+        <p>纯静态、零依赖、数据只存本机。填表 → 生成代码 → 粘进 <b>js/data.js</b> → 刷新页面即可看到新卡片。</p>
+      </div>
+      <div class="btns">
+        <a class="btn" href="index.html">← 返回首页</a>
+        <button class="btn" type="button" id="btnExport">⬇ 导出完整 data.js</button>
+      </div>
+    </div>
+
+    <!-- 新增/编辑表单 -->
+    <div class="panel">
+      <h2>✏️ 卡片信息 <span class="n" id="editHint">（新增模式）</span></h2>
+      <div class="form-grid">
+        <div class="field">
+          <label>名称 *</label>
+          <input id="f-name" placeholder="如：AgentRouter">
+        </div>
+        <div class="field">
+          <label>分类 *</label>
+          <input id="f-cat" list="catList" placeholder="如：公益中转">
+          <datalist id="catList"></datalist>
+        </div>
+        <div class="field field--full">
+          <label>官网链接 *</label>
+          <input id="f-url" placeholder="https://example.com/register?aff=XXXX">
+        </div>
+        <div class="field field--full">
+          <label>一句话描述（含邀请码的可留空）</label>
+          <input id="f-desc" placeholder="如：公益 AI API 中转站，越活跃送得越多。">
+        </div>
+        <div class="field">
+          <label>福利 / 特点 *</label>
+          <input id="f-perk" placeholder="如：$175 额度">
+        </div>
+        <div class="field">
+          <label>福利说明</label>
+          <input id="f-note" placeholder="如：注册 $100 + 链接 $50">
+        </div>
+        <div class="field">
+          <label>邀请码（无则留空）</label>
+          <input id="f-code" placeholder="如：D9TZ">
+        </div>
+        <div class="field">
+          <label>使用限制 / 条件</label>
+          <input id="f-condition" placeholder="如：限新用户 · 速度较慢">
+        </div>
+        <div class="field field--full">
+          <label>标签（逗号分隔）</label>
+          <input id="f-tags" placeholder="如：公益, GitHub, Linux do">
+          <span class="hint">常用：API / 公益中转 / 付费中转 / 国产模型 / 官方应用 / 免费 / 邮箱注册 / GitHub / Linux do / 教育邮箱 / 无注册限制</span>
+        </div>
+        <div class="field">
+          <label>图标路径</label>
+          <input id="f-logo" placeholder="assets/xxx.png">
+          <span class="hint">把图标文件放到 assets/ 目录后填路径</span>
+        </div>
+        <div class="field">
+          <label>主题色</label>
+          <input id="f-color" type="color" value="#0d9488">
+        </div>
+        <div class="field">
+          <label>按钮文案</label>
+          <input id="f-cta" placeholder="立即领取 / 去薅一下 / 查看福利">
+        </div>
+        <div class="field">
+          <label>福利区标签</label>
+          <select id="f-perkLabel">
+            <option value="">🎁 新用户福利（默认）</option>
+            <option value="💡 站点特色">💡 站点特色</option>
+          </select>
+        </div>
+        <div class="field field--checks">
+          <label>展示开关</label>
+          <div class="checks">
+            <label class="check"><input type="checkbox" id="f-featured"><span>推荐「荐」</span></label>
+            <label class="check"><input type="checkbox" id="f-offline"><span>暂时下线</span></label>
+          </div>
+          <span class="hint">推荐：卡片左上角显示金色徽标 · 下线：前台隐藏，仅管理台可见</span>
+        </div>
+      </div>
+      <div class="row-actions">
+        <button class="btn btn--primary" type="button" id="btnGenerate">✨ 生成卡片代码</button>
+        <button class="btn" type="button" id="btnPreview">👁 预览效果</button>
+        <button class="btn" type="button" id="btnReset">清空表单</button>
+        <span class="hint" id="genMsg"></span>
+      </div>
+    </div>
+
+    <!-- 预览 -->
+    <div class="panel" id="previewPanel" hidden>
+      <h2>👁 实时预览</h2>
+      <div class="preview-box" id="previewBox"></div>
+    </div>
+
+    <!-- 当前卡片列表 -->
+    <div class="panel">
+      <h2>📋 当前卡片 <span class="n" id="listCount"></span></h2>
+      <div class="item-list" id="itemList"></div>
+    </div>
+
+    <!-- 代码输出 -->
+    <div class="panel">
+      <h2>📥 生成的代码</h2>
+      <div class="out-wrap">
+        <textarea class="out" id="output" readonly placeholder="点击「生成卡片代码」后，这里会出现可以直接粘贴的 JS 代码"></textarea>
+      </div>
+      <div class="row-actions">
+        <button class="btn btn--primary" type="button" id="btnCopy">📋 复制代码</button>
+        <span class="hint">把代码粘贴到 js/data.js 数组里即可，保存后刷新首页。</span>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/data.js?v=17"></script>
+  <script>
+  (function () {
+    "use strict";
+
+    /* ---------- 入口校验：只放行从首页隐蔽入口（快速连点 5 次）进来的访客 ---------- */
+    var adminWrap = document.getElementById("adminWrap");
+    var ok = false;
+    try {
+      ok = sessionStorage.getItem("perksAdmin") === "1" &&
+           new URLSearchParams(location.search).get("from") === "secret";
+    } catch (e) { ok = false; }
+    if (!ok) {
+      // 直接访问 / 收藏 / 历史记录：静默重定向回首页，不暴露管理台的存在
+      location.replace("index.html");
+      return;
+    }
+    try { sessionStorage.removeItem("perksAdmin"); } catch (e) {}
+    adminWrap.hidden = false;
+
+    var list = (window.PERKS || []).slice();
+    var editingId = null;
+
+    var $ = function (id) { return document.getElementById(id); };
+
+    /* ---------- 工具 ---------- */
+    function esc(s) {
+      return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+        return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+      });
+    }
+    function uid() {
+      return "card-" + Date.now().toString(36);
+    }
+    // 兼容旧浏览器
+    if (!Array.prototype.findIndex) {
+      Array.prototype.findIndex = function (fn) {
+        for (var i = 0; i < this.length; i++) if (fn(this[i], i)) return i;
+        return -1;
+      };
+    }
+    function toast(msg) {
+      var el = document.createElement("div");
+      el.className = "toast--admin";
+      el.textContent = msg;
+      document.body.appendChild(el);
+      setTimeout(function () {
+        el.style.transition = "opacity .25s";
+        el.style.opacity = "0";
+        setTimeout(function () { el.remove(); }, 260);
+      }, 2000);
+    }
+
+    /* ---------- 表单读写 ---------- */
+    function readForm() {
+      var name = $("f-name").value.trim();
+      var url = $("f-url").value.trim();
+      var perk = $("f-perk").value.trim();
+      if (!name) { toast("请填写名称"); $("f-name").focus(); return null; }
+      if (!url) { toast("请填写官网链接"); $("f-url").focus(); return null; }
+      if (!perk) { toast("请填写福利 / 特点"); $("f-perk").focus(); return null; }
+      var tags = $("f-tags").value.split(/[,，]/).map(function (t) { return t.trim(); })
+        .filter(function (t) { return t.length > 0; });
+      return {
+        id: editingId || uid(),
+        name: name,
+        logo: $("f-logo").value.trim() || "assets/" + name.toLowerCase().replace(/\s+/g, "-") + ".png",
+        color: $("f-color").value || "#0d9488",
+        cat: $("f-cat").value.trim() || "其他",
+        desc: $("f-desc").value.trim(),
+        perk: perk,
+        note: $("f-note").value.trim(),
+        code: $("f-code").value.trim(),
+        condition: $("f-condition").value.trim(),
+        tags: tags,
+        url: url,
+        cta: $("f-cta").value.trim() || "去薅一下",
+        perkLabel: $("f-perkLabel").value,
+        featured: $("f-featured").checked,
+        offline: $("f-offline").checked
+      };
+    }
+    function writeForm(p) {
+      $("f-name").value = p.name || "";
+      $("f-cat").value = p.cat || "";
+      $("f-url").value = p.url || "";
+      $("f-desc").value = p.desc || "";
+      $("f-perk").value = p.perk || "";
+      $("f-note").value = p.note || "";
+      $("f-code").value = p.code || "";
+      $("f-condition").value = p.condition || "";
+      $("f-tags").value = (p.tags || []).join(", ");
+      $("f-logo").value = p.logo || "";
+      $("f-color").value = /^#[0-9a-f]{6}$/i.test(p.color || "") ? p.color : "#0d9488";
+      $("f-cta").value = p.cta || "";
+      $("f-perkLabel").value = p.perkLabel || "";
+      $("f-featured").checked = !!p.featured;
+      $("f-offline").checked = !!p.offline;
+    }
+    function resetForm() {
+      editingId = null;
+      ["f-name","f-cat","f-url","f-desc","f-perk","f-note","f-code","f-condition","f-tags","f-logo","f-cta"]
+        .forEach(function (id) { $(id).value = ""; });
+      $("f-color").value = "#0d9488";
+      $("f-perkLabel").value = "";
+      $("f-cta").value = "";
+      $("f-featured").checked = false;
+      $("f-offline").checked = false;
+      $("editHint").textContent = "（新增模式）";
+      $("output").value = "";
+      $("previewPanel").hidden = true;
+    }
+
+    /* ---------- 代码生成 ---------- */
+    function indent(obj) {
+      // 序列化为 2 空格缩进的 JS 对象字面量（与 data.js 风格一致）
+      var lines = ["  {"];
+      var keys = ["id","name","logo","color","cat","desc","perk","note","code","condition","tags","url","cta","perkLabel","featured","offline"];
+      keys.forEach(function (k) {
+        if (!(k in obj)) return;
+        var v = obj[k];
+        var s;
+        if (typeof v === "boolean") {
+          s = v ? "true" : "false";
+        } else if (Array.isArray(v)) {
+          s = "[" + v.map(function (t) { return '"' + t + '"'; }).join(", ") + "]";
+        } else {
+          s = '"' + String(v).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
+        }
+        lines.push("    " + k + ": " + s + ",");
+      });
+      // 去掉最后一个逗号
+      if (lines[lines.length - 1].endsWith(",")) lines[lines.length - 1] = lines[lines.length - 1].slice(0, -1);
+      lines.push("  }");
+      return lines.join("\n");
+    }
+
+    function regenerate() {
+      // 生成完整 data.js 内容
+      var header = [
+        "/* 羊毛货架 · 资源数据",
+        " * 字段：name 名称 / logo 图标路径 / color 标识色 / cat 分类",
+        " *      desc 这是什么（含邀请码的卡片可留空） / perk 福利 / note 福利说明 / code 邀请码（无则留空）",
+        " *      condition 使用限制 / tags 标签 / url / cta 按钮文案",
+        " *      perkLabel 福利区标签（可选，默认「🎁 新用户福利」）",
+        " *      featured 推荐（可选，卡片左上角显示金色「荐」徽标）",
+        " *      offline 暂时下线（可选，true 时前台隐藏该卡片，仅在管理台可见）",
+        " * 添加卡片请用 admin.html 可视化编辑器，导出后覆盖本文件即可",
+        " */"
+      ].join("\n");
+      var body = "window.PERKS = [\n" +
+        list.map(function (p) { return indent(p); }).join(",\n") +
+        "\n];\n";
+      return header + "\n" + body;
+    }
+
+    /* ---------- 卡片预览（复用首页样式） ---------- */
+    var TAG_CLASS = {
+      "API": "api", "官方应用": "official", "公益中转": "green", "付费中转": "paid",
+      "国产模型": "model", "GitHub": "github", "Linux do": "linuxdo",
+      "公益": "green", "付费": "paid", "按量付费": "paid", "国模": "model",
+      "免费": "blackgold", "全模态": "blackgold",
+      "邮箱注册": "email", "教育邮箱": "edu", "VIP 签到": "vip", "无注册限制": "nolimit",
+      "多模型": "holographic", "语音": "holographic", "音乐": "holographic", "音效": "holographic",
+      "订阅制": "vip", "字体": "model", "商用授权": "green", "图片处理": "model",
+      "PDF": "email", "工具箱": "model", "格式转换": "email", "画图": "model",
+      "免注册": "nolimit", "ICO 生成": "email", "开发者": "linuxdo",
+      "台词搜索": "model", "影视": "holographic", "邀请有礼": "holographic", "每日签到": "vip"
+    };
+    var ICON_INFO = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v6M12 7.6v.9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
+    var ICON_ARROW = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+    function cardHTML(p) {
+      var isImg = /\.(png|jpe?g|svg|ico|webp)(\?|$)/i.test(p.logo || "");
+      var logoHtml = isImg
+        ? '<img class="logo__img" src="' + esc(p.logo) + '" alt="' + esc(p.name) + ' 图标" ' +
+          'onerror="this.style.display=\'none\';this.parentNode.classList.add(\'logo--glyph\');this.parentNode.textContent=\'' + esc(p.name).slice(0, 2) + '\'">'
+        : esc(p.logo || p.name.slice(0, 2));
+      var logoCls = "logo" + (isImg ? " logo--img" : " logo--glyph");
+      var codeBlock = "";
+      if (p.code) {
+        codeBlock = '<div class="perk__code"><span>邀请码</span><code>' + esc(p.code) + '</code>' +
+          '<button class="copy" type="button">复制</button></div>';
+      }
+      var tags = (p.tags || []).map(function (t) {
+        var cls = TAG_CLASS[t] ? "tag tag--" + TAG_CLASS[t] : "tag";
+        return '<span class="' + cls + '">' + esc(t) + "</span>";
+      }).join("");
+      return (
+        '<article class="card" data-id="' + esc(p.id) + '">' +
+          (p.featured ? '<span class="card__pick" aria-label="推荐">荐</span>' : "") +
+          '<div class="card__head">' +
+            '<div class="' + logoCls + '" style="--c:' + esc(p.color) + '">' + logoHtml + "</div>" +
+            '<div class="card__title"><h3>' + esc(p.name) + '</h3><span class="card__cat">' + esc(p.cat) + "</span></div>" +
+          "</div>" +
+          '<p class="desc">' + esc(p.desc || "") + "</p>" +
+          '<div class="perk">' +
+            '<div class="perk__label">' + esc(p.perkLabel || "🎁 新用户福利") + "</div>" +
+            '<div class="perk__value">' + esc(p.perk) + "</div>" +
+            '<div class="perk__note">' + esc(p.note || "") + "</div>" +
+            codeBlock +
+          "</div>" +
+          '<div class="tags">' + tags + "</div>" +
+          '<div class="cond">' + ICON_INFO + "<span>" + esc(p.condition || "") + "</span></div>" +
+          '<div class="card__foot">' +
+            '<a class="btn" href="' + esc(p.url) + '" target="_blank" rel="noopener noreferrer">' +
+            esc(p.cta || "去薅一下") + ICON_ARROW + "</a>" +
+          "</div>" +
+        "</article>"
+      );
+    }
+
+    /* ---------- 列表渲染 ---------- */
+    function renderList() {
+      var offlineN = list.filter(function (p) { return p.offline; }).length;
+      $("listCount").textContent = "共 " + list.length + " 个" +
+        (offlineN ? " · " + offlineN + " 个已下线" : "");
+      var box = $("itemList");
+      if (!list.length) {
+        box.innerHTML = '<div class="empty-tip">暂无卡片，填写上方表单生成第一个吧</div>';
+        return;
+      }
+      box.innerHTML = "";
+      list.forEach(function (p, i) {
+        var el = document.createElement("div");
+        el.className = "item" + (p.offline ? " item--offline" : "");
+        var isImg = /\.(png|jpe?g|svg|ico|webp)(\?|$)/i.test(p.logo || "");
+        el.innerHTML =
+          '<span class="idx">' + (i + 1) + "</span>" +
+          '<span class="logo" style="background:#fff;border:1px solid var(--border)">' +
+            (isImg ? '<img src="' + esc(p.logo) + '" alt="">' : esc((p.name || "").slice(0, 2))) +
+          "</span>" +
+          '<span class="meta"><b>' + esc(p.name) + "</b>" +
+            (p.featured ? '<span class="badge badge--pick">荐</span>' : "") +
+            (p.offline ? '<span class="badge badge--off">已下线</span>' : "") +
+            '<span>' + esc(p.cat) + (p.code ? " · 码 " + esc(p.code) : "") + "</span>" +
+          "</span>" +
+          '<span class="ops">' +
+            '<button class="btn btn--sm" type="button" data-op="up" data-i="' + i + '">↑</button>' +
+            '<button class="btn btn--sm" type="button" data-op="down" data-i="' + i + '">↓</button>' +
+            '<button class="btn btn--sm" type="button" data-op="offline" data-i="' + i + '">' +
+              (p.offline ? "恢复" : "下线") + "</button>" +
+            '<button class="btn btn--sm" type="button" data-op="edit" data-i="' + i + '">编辑</button>' +
+            '<button class="btn btn--sm btn--danger" type="button" data-op="del" data-i="' + i + '">删除</button>' +
+          "</span>";
+        box.appendChild(el);
+      });
+    }
+
+    /* ---------- 分类提示 ---------- */
+    function renderCatList() {
+      var cats = [];
+      list.forEach(function (p) {
+        if (p.cat && cats.indexOf(p.cat) === -1) cats.push(p.cat);
+      });
+      $("catList").innerHTML = cats.map(function (c) {
+        return "<option>" + esc(c) + "</option>";
+      }).join("");
+    }
+
+    /* ---------- 事件 ---------- */
+    $("btnGenerate").addEventListener("click", function () {
+      var p = readForm();
+      if (!p) return;
+      // 编辑模式：更新原卡片；新增模式：追加到列表
+      if (editingId) {
+        var idx = list.findIndex(function (x) { return x.id === editingId; });
+        if (idx !== -1) list[idx] = p;
+      } else {
+        list.push(p);
+      }
+      renderList();
+      renderCatList();
+      $("output").value = indent(p);
+      $("genMsg").textContent = editingId
+        ? "✅ 已更新「" + p.name + "」，点「导出完整 data.js」保存"
+        : "✅ 已加入列表，点「导出完整 data.js」保存";
+      toast(editingId ? "卡片已更新" : "已加入列表");
+      // 只退出编辑态，保留表单和生成的代码，方便继续微调
+      editingId = null;
+      $("editHint").textContent = "（新增模式）";
+    });
+
+    $("btnPreview").addEventListener("click", function () {
+      var p = readForm();
+      if (!p) return;
+      $("previewPanel").hidden = false;
+      $("previewBox").innerHTML = cardHTML(p);
+      $("previewPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    $("btnReset").addEventListener("click", function () {
+      resetForm();
+      toast("表单已清空");
+    });
+
+    $("btnCopy").addEventListener("click", function () {
+      var out = $("output");
+      if (!out.value) { toast("先点「生成卡片代码」"); return; }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(out.value).then(function () { toast("已复制到剪贴板"); });
+      } else {
+        out.select();
+        try { document.execCommand("copy"); toast("已复制到剪贴板"); }
+        catch (e) { toast("复制失败，请手动选择复制"); }
+      }
+    });
+
+    $("btnExport").addEventListener("click", function () {
+      var content = regenerate();
+      var blob = new Blob([content], { type: "text/javascript;charset=utf-8" });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement("a");
+      a.href = url;
+      a.download = "data.js";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () {
+        URL.revokeObjectURL(url);
+        a.remove();
+      }, 500);
+      toast("已导出 data.js，用它覆盖项目里的同名文件即可");
+    });
+
+    $("itemList").addEventListener("click", function (e) {
+      var btn = e.target.closest("button[data-op]");
+      if (!btn) return;
+      var op = btn.dataset.op;
+      var i = parseInt(btn.dataset.i, 10);
+      if (isNaN(i) || !list[i]) return;
+
+      if (op === "up" && i > 0) {
+        var t = list[i - 1]; list[i - 1] = list[i]; list[i] = t;
+        renderList(); renderCatList();
+      } else if (op === "down" && i < list.length - 1) {
+        var t2 = list[i + 1]; list[i + 1] = list[i]; list[i] = t2;
+        renderList(); renderCatList();
+      } else if (op === "offline") {
+        list[i].offline = !list[i].offline;
+        renderList();
+        toast(list[i].offline ? "「" + list[i].name + "」已下线，前台将不再展示" : "「" + list[i].name + "」已恢复上线");
+      } else if (op === "edit") {
+        editingId = list[i].id;
+        writeForm(list[i]);
+        $("editHint").textContent = "（编辑中：" + list[i].name + "）";
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        $("f-name").focus();
+      } else if (op === "del") {
+        var name = list[i].name;
+        if (!confirm("确认删除「" + name + "」？")) return;
+        if (editingId === list[i].id) resetForm();
+        list.splice(i, 1);
+        renderList(); renderCatList();
+        toast("已删除「" + name + "」");
+      }
+    });
+
+    // 初次渲染
+    renderList();
+    renderCatList();
+  })();
+  </script>
+</body>
+</html>

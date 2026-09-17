@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>羊毛货架 · 精选福利资源导航</title>
+  <meta name="description" content="精心整理的互联网福利货架：国产模型 Token、公益中转额度、付费中转优惠，一眼看懂「是什么 → 能薅到什么 → 怎么薅」。">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧺</text></svg>">
+  <link rel="stylesheet" href="css/style.css?v=17">
+</head>
+<body>
+  <!-- 顶部栏：保持紧凑，一进来就能看到卡片 -->
+  <header class="topbar">
+    <div class="topbar__inner">
+      <div class="brand">
+        <span class="brand__mark">🧺</span>
+        <div class="brand__text">
+          <h1>羊毛货架</h1>
+          <p class="brand__sub">精心整理的互联网福利，<span id="stats"></span></p>
+        </div>
+      </div>
+
+      <div class="topbar__actions">
+        <div class="search">
+          <svg class="search__icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/>
+            <path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input id="searchInput" type="search" placeholder="搜索资源、福利或标签，如：中转 / Token / $175" autocomplete="off" aria-label="搜索资源">
+          <button class="search__clear" id="searchClear" type="button" aria-label="清空搜索" hidden>
+            <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <nav class="chips" id="chips" aria-label="资源分类"></nav>
+  </header>
+
+  <main class="wrap">
+    <div class="resultbar" id="resultBar"></div>
+    <div class="grid" id="grid"></div>
+
+    <div class="empty" id="empty" hidden>
+      <svg viewBox="0 0 160 120" width="160" height="120" aria-hidden="true">
+        <rect x="20" y="24" width="120" height="80" rx="12" fill="none" stroke="#d7dbe3" stroke-width="2" stroke-dasharray="6 6"/>
+        <circle cx="71" cy="62" r="16" fill="none" stroke="#b9c0cc" stroke-width="3"/>
+        <path d="m83 74 12 12" stroke="#b9c0cc" stroke-width="3" stroke-linecap="round"/>
+        <path d="M64 56h14M64 64h9" stroke="#c9d0db" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="120" cy="30" r="3" fill="#e2c9a0"/>
+        <circle cx="38" cy="98" r="3" fill="#d7c3e0"/>
+      </svg>
+      <h3>没有找到匹配的福利</h3>
+      <p>换个关键词试试，或者浏览全部分类，总能薅到点什么。</p>
+      <button class="btn btn--ghost" id="resetFilters" type="button">清空筛选条件</button>
+    </div>
+  </main>
+
+  <footer class="foot">
+    <p>🧺 羊毛货架 · 纯前端静态演示 · 福利信息以各官网实际政策为准。</p>
+    <p>所有外链均在新标签页打开 · 点击卡片右上角图标可一键复制链接分享给好友。</p>
+    <p><span class="foot__secret" id="secretEntry" role="img" aria-label="羊毛货架">🧺</span></p>
+  </footer>
+
+  <div class="toasts" id="toasts" aria-live="polite"></div>
+
+  <!-- 友情提醒：右下角常驻气泡 -->
+  <div class="notice-bubble" id="noticeBubble" role="dialog" aria-label="友情提醒" hidden>
+    <button class="notice__close" id="noticeClose" type="button" aria-label="关闭提醒">
+      <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">
+        <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+    </button>
+    <div class="notice__head">
+      <svg class="notice__icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path d="M12 2.6 4.2 5.5v5.9c0 4.9 3.3 8.9 7.8 9.8 4.5-.9 7.8-4.9 7.8-9.8V5.5L12 2.6z" fill="none" stroke="#dc2626" stroke-width="1.7" stroke-linejoin="round"/>
+        <path d="M12 8.6v4.4M12 16.2h.01" stroke="#dc2626" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>友情提醒</span>
+    </div>
+    <p class="notice__body">
+      本站收录的<b>公益中转站、第三方 API 服务</b>，部分上游已明确声明<b>会使用用户的数据进行训练</b>。<br>
+      请<b>不要传入个人隐私、商业机密等敏感数据</b>，使用造成的后果需自行负责。<br>
+      <span class="muted">本页仅为资源整理，与各站点无任何合作关系。</span>
+      <br><span class="muted">延伸阅读：</span><a class="notice__link" href="https://xz.aliyun.com/news/92154" target="_blank" rel="noopener noreferrer">《谈谈使用第三方 API 中转站的风险》</a>
+    </p>
+    <div class="notice__bar"><i id="noticeBar"></i></div>
+  </div>
+
+  <script src="js/data.js?v=17"></script>
+  <script src="js/app.js?v=17"></script>
+</body>
+</html>
