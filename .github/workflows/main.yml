@@ -1,0 +1,165 @@
+# 羊毛货架 · 自动校验并部署到 GitHub Pages
+#
+# 触发方式：
+#   - push 到 main 分支（改完 data.js 直接推，几分钟内自动上线）
+#   - 在 Actions 页面手动触发（workflow_dispatch）
+#
+# ⚠️ 前置条件：GitHub Pages 需要用公共仓库（免费账户）。
+#    本仓库若仍为私有，deploy 任务会被跳过（不会报错），
+#    待仓库改为 public 并开启 Pages 后自动生效。
+#    开启路径：仓库 Settings → Pages → Source 选「GitHub Actions」
+
+name: 构建并部署 Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 部署 Pages 所需的最小权限
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只跑一个部署，避免多次推送互相覆盖
+# （保留 cancel-in-progress: false，让排队中的部署依次完成，不中断已开始的发布）
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  # ---------- 1. 校验 + 打包 ----------
+  build:
+    name: 校验并打包
+    runs-on: ubuntu-latest
+    # 私有仓库无法使用 Pages，跳过以免 Actions 面板长期显示失败
+    if: ${{ !github.event.repository.private }}
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 准备 Node 环境
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: JavaScript 语法检查
+        run: |
+          node --check js/data.js
+          node --check js/app.js
+          echo "✅ 语法检查通过"
+
+      - name: 校验数据完整性与资源引用
+        run: |
+          node <<'NODE'
+          const fs = require("fs");
+          const path = require("path");
+
+          // data.js 通过 window.PERKS 挂载数据，这里用沙箱求值取出
+          const sandbox = {};
+          new Function("window", fs.readFileSync("js/data.js", "utf8"))(sandbox);
+          const list = sandbox.PERKS || [];
+
+          const errors = [];
+          const warnings = [];
+          const seenIds = new Set();
+          const REQUIRED = ["id", "name", "logo", "cat", "perk", "tags", "url", "cta"];
+
+          if (!list.length) errors.push("data.js 里没有任何卡片");
+          if (list.length > 500) warnings.push(`卡片数量偏多（${list.length}），注意首屏体积`);
+
+          const CHIP_BUDGET = 12; // 分类过多会让筛选栏溢出
+
+          list.forEach((p, i) => {
+            const at = `第 ${i + 1} 张卡片（${p.name || p.id || "未命名"}）`;
+
+            REQUIRED.forEach((k) => {
+              if (!p[k] || (Array.isArray(p[k]) && !p[k].length)) {
+                errors.push(`${at} 缺少必填字段：${k}`);
+              }
+            });
+
+            if (p.id) {
+              if (seenIds.has(p.id)) errors.push(`${at} 的 id 重复：${p.id}`);
+              seenIds.add(p.id);
+            }
+
+            if (p.url && !/^https:\/\//i.test(p.url)) {
+              errors.push(`${at} 的链接不是 https：${p.url}`);
+            }
+
+            // 图片类图标必须真实存在，文字 Logo 则跳过
+            if (p.logo && /\.(png|jpe?g|svg|ico|webp)$/i.test(p.logo)) {
+              if (!fs.existsSync(p.logo)) errors.push(`${at} 的图标文件不存在：${p.logo}`);
+            }
+
+            if (p.code && !p.condition) {
+              warnings.push(`${at} 有邀请码但未填「使用限制」`);
+            }
+            if (p.offline) warnings.push(`${at} 处于下线状态，前台不会展示`);
+          });
+
+          // 分类数量：直接决定筛选栏的 chip 个数
+          const cats = new Set(list.filter((p) => !p.offline).map((p) => p.cat));
+          if (cats.size > CHIP_BUDGET) {
+            warnings.push(`分类有 ${cats.size} 个（建议 ≤ ${CHIP_BUDGET}）：${[...cats].join("、")}`);
+          }
+
+          // 站点总体积（首屏要加载的全部文件）
+          const CORE = ["index.html", "css/style.css", "js/data.js", "js/app.js"];
+          let bytes = 0;
+          CORE.forEach((f) => { bytes += fs.statSync(f).size; });
+          const assetsDir = "assets";
+          let assetBytes = 0;
+          let assetCount = 0;
+          if (fs.existsSync(assetsDir)) {
+            for (const f of fs.readdirSync(assetsDir)) {
+              const st = fs.statSync(path.join(assetsDir, f));
+              if (st.isFile()) { assetBytes += st.size; assetCount++; }
+            }
+          }
+
+          console.log("── 站点概况 ──────────────────────────");
+          console.log(`卡片总数      ${list.length}（下线 ${list.filter((p) => p.offline).length}，推荐 ${list.filter((p) => p.featured).length}）`);
+          console.log(`分类数量      ${cats.size}`);
+          console.log(`核心文件      ${(bytes / 1024).toFixed(1)} KB（html/css/js）`);
+          console.log(`图标资源      ${assetCount} 个，共 ${(assetBytes / 1024).toFixed(0)} KB`);
+          console.log("──────────────────────────────────────");
+
+          if (warnings.length) {
+            console.log("\n⚠️  提示：");
+            warnings.forEach((w) => console.log("   - " + w));
+          }
+
+          if (errors.length) {
+            console.error("\n❌ 校验失败：");
+            errors.forEach((e) => console.error("   - " + e));
+            process.exit(1);
+          }
+          console.log("\n✅ 数据校验通过，可以发布");
+          NODE
+
+      - name: 配置 Pages
+        uses: actions/configure-pages@v5
+
+      - name: 打包站点
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # 项目本身没有构建步骤，仓库根目录就是站点根目录
+          # 该 action 会自动排除 .git 与 .github
+          path: .
+
+  # ---------- 2. 发布 ----------
+  deploy:
+    name: 发布到 Pages
+    needs: build
+    runs-on: ubuntu-latest
+    if: ${{ !github.event.repository.private }}
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 部署
+        id: deployment
+        uses: actions/deploy-pages@v4
