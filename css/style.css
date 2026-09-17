@@ -831,13 +831,49 @@ a { color: inherit; }
   box-shadow: 0 18px 44px -16px rgba(20, 28, 48, .3), 0 6px 16px -8px rgba(20, 28, 48, .16);
   padding: 16px 16px 0;
   overflow: hidden;
-  animation: noticeIn .3s var(--ease) both;
+  /* 入场：右下滑入回弹 → 落位 → 左右摇摆；同时叠两轮红色扩散环抓余光 */
+  animation:
+    noticeIn 1.9s var(--ease) both,
+    noticePulse 1.1s ease-out .5s 2 forwards;
 }
 .notice-bubble[hidden] { display: none; }
 .notice-bubble.out { animation: noticeOut .22s var(--ease) both; }
+
 @keyframes noticeIn {
-  from { opacity: 0; transform: translateY(16px) scale(.97); }
-  to { opacity: 1; transform: none; }
+  /* 1. 从右下角滑入，带轻微弹性过冲 */
+  0%   { opacity: 0; transform: translate(38px, 26px) scale(.9); }
+  36%  { opacity: 1; transform: translate(-6px, -3px) scale(1.035); }
+  44%  { transform: translate(2px, 1px) scale(.997); }
+  50%  { transform: none; }
+  /* 2. 停顿一拍后左右摇摆，余光也能察觉 */
+  58%  { transform: translateX(-9px) rotate(-1.3deg); }
+  65%  { transform: translateX(8px) rotate(1.1deg); }
+  72%  { transform: translateX(-5px) rotate(-.7deg); }
+  79%  { transform: translateX(3px) rotate(.45deg); }
+  86%  { transform: translateX(-1.5px) rotate(-.2deg); }
+  100% { transform: none; }
+}
+
+/* 扩散环：红色柔光向外扩散两轮，最容易被余光捕捉 */
+@keyframes noticePulse {
+  0% {
+    box-shadow:
+      0 18px 44px -16px rgba(20, 28, 48, .3),
+      0 6px 16px -8px rgba(20, 28, 48, .16),
+      0 0 0 0 rgba(220, 38, 38, .45);
+  }
+  45% {
+    box-shadow:
+      0 18px 44px -16px rgba(20, 28, 48, .3),
+      0 6px 16px -8px rgba(20, 28, 48, .16),
+      0 0 20px 7px rgba(220, 38, 38, .5);
+  }
+  100% {
+    box-shadow:
+      0 18px 44px -16px rgba(20, 28, 48, .3),
+      0 6px 16px -8px rgba(20, 28, 48, .16),
+      0 0 34px 16px rgba(220, 38, 38, 0);
+  }
 }
 @keyframes noticeOut {
   to { opacity: 0; transform: translateY(10px) scale(.98); }
@@ -869,7 +905,21 @@ a { color: inherit; }
   font-weight: 700;
   color: var(--text);
 }
-.notice__icon { flex: none; }
+/* 盾牌图标：与气泡摇摆同步晃一下，像敲响铃铛 */
+.notice__icon {
+  flex: none;
+  transform-origin: 50% 16%;
+  animation: noticeBell .95s var(--ease) .95s;
+}
+@keyframes noticeBell {
+  0%, 100% { transform: rotate(0) scale(1); }
+  12%  { transform: rotate(-13deg) scale(1.14); }
+  28%  { transform: rotate(11deg) scale(1.1); }
+  44%  { transform: rotate(-8deg) scale(1.06); }
+  60%  { transform: rotate(6deg) scale(1.03); }
+  76%  { transform: rotate(-3deg) scale(1.01); }
+  90%  { transform: rotate(1.5deg) scale(1); }
+}
 .notice__body {
   margin-top: 10px;
   font-size: 12.8px;
