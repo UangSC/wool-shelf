@@ -143,6 +143,9 @@
     "开发者": "linuxdo",
     "台词搜索": "model",
     "影视": "holographic",
+    "视频": "holographic",
+    "图片": "model",
+    "需注册": "nolimit",
     "邀请有礼": "holographic",
     "每日签到": "vip"
   };
