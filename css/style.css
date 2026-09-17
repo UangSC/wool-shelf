@@ -38,13 +38,19 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  /* 轻量等宽：全部使用系统内置字体，零网络下载；中文回退到系统无衬线 */
-  font-family: ui-monospace, "SF Mono", SFMono-Regular, "Cascadia Mono", Consolas, "Liberation Mono", "DejaVu Sans Mono", monospace, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei";
+  /* 轻量等宽：全部使用系统内置字体，零网络下载
+   * 注意：中文字体必须排在通用族 monospace 之前，否则会被通用族截断，
+   * Windows 上会回退到宋体点阵字形，出现锯齿感 */
+  font-family: ui-monospace, "SF Mono", SFMono-Regular, "Cascadia Mono", Consolas,
+    "Liberation Mono", "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei",
+    "Hiragino Sans GB", "DejaVu Sans Mono", monospace;
   font-size: 15.5px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  text-rendering: geometricPrecision;
+  -webkit-text-size-adjust: 100%;
+  /* 不使用 text-rendering: geometricPrecision —— 它会关闭字形微调(hinting)，
+   * 在 Windows ClearType 下反而使笔画发虚、发毛 */
 }
 
 /* 顶部带一层极淡的氛围色，避免纯白单调 */
@@ -823,34 +829,34 @@ a { color: inherit; }
   right: 18px;
   bottom: 18px;
   z-index: 200;
-  width: 340px;
+  width: 384px;
   max-width: calc(100vw - 24px);
   background: rgba(255, 255, 255, .97);
   border: 1px solid #e4e8f0;
-  border-radius: 14px;
+  border-radius: 16px;
   box-shadow: 0 18px 44px -16px rgba(20, 28, 48, .3), 0 6px 16px -8px rgba(20, 28, 48, .16);
-  padding: 16px 16px 0;
+  padding: 18px 18px 0;
   overflow: hidden;
   /* 入场：右下滑入回弹 → 落位 → 左右摇摆；同时叠两轮红色扩散环抓余光 */
   animation:
-    noticeIn 1.9s var(--ease) both,
-    noticePulse 1.1s ease-out .5s 2 forwards;
+    noticeIn 2.1s var(--ease) both,
+    noticePulse 1.2s ease-out .5s 2 forwards;
 }
 .notice-bubble[hidden] { display: none; }
 .notice-bubble.out { animation: noticeOut .22s var(--ease) both; }
 
 @keyframes noticeIn {
-  /* 1. 从右下角滑入，带轻微弹性过冲 */
-  0%   { opacity: 0; transform: translate(38px, 26px) scale(.9); }
-  36%  { opacity: 1; transform: translate(-6px, -3px) scale(1.035); }
-  44%  { transform: translate(2px, 1px) scale(.997); }
+  /* 1. 从右下角滑入，带弹性过冲 */
+  0%   { opacity: 0; transform: translate(44px, 30px) scale(.88); }
+  36%  { opacity: 1; transform: translate(-8px, -4px) scale(1.045); }
+  44%  { transform: translate(3px, 1px) scale(.995); }
   50%  { transform: none; }
   /* 2. 停顿一拍后左右摇摆，余光也能察觉 */
-  58%  { transform: translateX(-9px) rotate(-1.3deg); }
-  65%  { transform: translateX(8px) rotate(1.1deg); }
-  72%  { transform: translateX(-5px) rotate(-.7deg); }
-  79%  { transform: translateX(3px) rotate(.45deg); }
-  86%  { transform: translateX(-1.5px) rotate(-.2deg); }
+  58%  { transform: translateX(-14px) rotate(-2deg); }
+  65%  { transform: translateX(12px) rotate(1.7deg); }
+  72%  { transform: translateX(-8px) rotate(-1.1deg); }
+  79%  { transform: translateX(5px) rotate(.7deg); }
+  86%  { transform: translateX(-2.5px) rotate(-.35deg); }
   100% { transform: none; }
 }
 
@@ -866,7 +872,7 @@ a { color: inherit; }
     box-shadow:
       0 18px 44px -16px rgba(20, 28, 48, .3),
       0 6px 16px -8px rgba(20, 28, 48, .16),
-      0 0 20px 7px rgba(220, 38, 38, .5);
+      0 0 26px 9px rgba(220, 38, 38, .62);
   }
   100% {
     box-shadow:
@@ -881,14 +887,14 @@ a { color: inherit; }
 
 .notice__close {
   position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 24px;
-  height: 24px;
+  top: 11px;
+  right: 11px;
+  width: 27px;
+  height: 27px;
   display: grid;
   place-items: center;
   border: 1px solid var(--border);
-  border-radius: 7px;
+  border-radius: 8px;
   background: var(--surface);
   color: var(--text-3);
   cursor: pointer;
@@ -900,30 +906,32 @@ a { color: inherit; }
 .notice__head {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14.5px;
+  gap: 9px;
+  font-size: 16px;
   font-weight: 700;
   color: var(--text);
 }
 /* 盾牌图标：与气泡摇摆同步晃一下，像敲响铃铛 */
 .notice__icon {
   flex: none;
+  width: 23px;
+  height: 23px;
   transform-origin: 50% 16%;
-  animation: noticeBell .95s var(--ease) .95s;
+  animation: noticeBell 1.05s var(--ease) .95s;
 }
 @keyframes noticeBell {
   0%, 100% { transform: rotate(0) scale(1); }
-  12%  { transform: rotate(-13deg) scale(1.14); }
-  28%  { transform: rotate(11deg) scale(1.1); }
-  44%  { transform: rotate(-8deg) scale(1.06); }
+  12%  { transform: rotate(-17deg) scale(1.18); }
+  28%  { transform: rotate(14deg) scale(1.13); }
+  44%  { transform: rotate(-10deg) scale(1.08); }
   60%  { transform: rotate(6deg) scale(1.03); }
   76%  { transform: rotate(-3deg) scale(1.01); }
   90%  { transform: rotate(1.5deg) scale(1); }
 }
 .notice__body {
-  margin-top: 10px;
-  font-size: 12.8px;
-  line-height: 1.7;
+  margin-top: 11px;
+  font-size: 13.6px;
+  line-height: 1.75;
   color: var(--text-2);
 }
 .notice__body b {

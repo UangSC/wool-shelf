@@ -96,14 +96,26 @@
     chipsBox.innerHTML = html;
   }
 
-  /* ---------- 过滤 ---------- */
+  /* ---------- 过滤 ----------
+   * 搜索用的匹配串只跟卡片数据有关，与筛选状态无关，
+   * 因此首次用到时算一次并缓存，避免每次按键都对全部卡片做一遍拼接 + 转小写 */
+  var hayCache = {};
+  function haystack(p) {
+    var h = hayCache[p.id];
+    if (h === undefined) {
+      h = [p.name, p.cat, p.desc, p.perk, p.note, p.condition, (p.code || ""), (p.tags || []).join(" ")]
+        .join(" ").toLowerCase();
+      hayCache[p.id] = h;
+    }
+    return h;
+  }
+
   function filtered() {
     var q = state.q.trim().toLowerCase();
     return PERKS.filter(function (p) {
       if (state.cat !== "全部" && p.cat !== state.cat) return false;
       if (!q) return true;
-      var hay = [p.name, p.cat, p.desc, p.perk, p.note, p.condition, (p.code || ""), (p.tags || []).join(" ")].join(" ").toLowerCase();
-      return hay.indexOf(q) !== -1;
+      return haystack(p).indexOf(q) !== -1;
     });
   }
 
@@ -146,6 +158,17 @@
     "视频": "holographic",
     "图片": "model",
     "需注册": "nolimit",
+    "AI 生图": "holographic",
+    "游戏素材": "green",
+    "软件下载": "model",
+    "教程": "email",
+    "动漫": "holographic",
+    "特效": "holographic",
+    "音频": "holographic",
+    "AI 应用": "holographic",
+    "新客优惠": "gold",
+    "云服务": "model",
+    "对象存储": "email",
     "邀请有礼": "holographic",
     "每日签到": "vip"
   };
@@ -217,9 +240,21 @@
     resultBar.innerHTML = parts.length ? head + " <span class='dot'>·</span> 已筛选：" + parts.join("，") : head;
   }
 
+  /* 卡片 HTML 只取决于卡片自身数据，与搜索/筛选状态无关，
+   * 缓存后翻页、搜索、切分类都只是拼接现成字符串，不再重复转义与模板拼接 */
+  var cardCache = {};
+  function cardCached(p) {
+    var html = cardCache[p.id];
+    if (html === undefined) {
+      html = cardHTML(p);
+      cardCache[p.id] = html;
+    }
+    return html;
+  }
+
   function render() {
     var list = filtered();
-    renderChips();
+    syncChips();
     renderResultBar(list);
 
     if (!list.length) {
@@ -229,7 +264,7 @@
     } else {
       empty.hidden = true;
       grid.hidden = false;
-      grid.innerHTML = list.map(cardHTML).join("");
+      grid.innerHTML = list.map(cardCached).join("");
       if (!animated) {
         animated = true;
         grid.classList.add("grid--animate");
@@ -239,6 +274,14 @@
     }
 
     searchClear.hidden = !state.q;
+  }
+
+  /* 分类 chips 只在分类变化或首次渲染时重建，搜索时不必重算计数 */
+  var chipsRenderedFor = null;
+  function syncChips() {
+    if (chipsRenderedFor === state.cat) return;
+    chipsRenderedFor = state.cat;
+    renderChips();
   }
 
   /* ---------- 事件绑定 ---------- */
