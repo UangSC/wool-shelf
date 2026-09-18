@@ -217,7 +217,11 @@
           codeBlock +
         "</div>" +
         '<div class="tags">' + tags + "</div>" +
-        '<div class="cond">' + ICON_INFO + "<span>" + esc(p.condition) + "</span></div>" +
+        '<div class="cond">' + ICON_INFO +
+          '<span class="cond__clip"><span class="cond__track">' +
+            '<span class="cond__chunk"><span class="cond__text">' + esc(p.condition) + "</span></span>" +
+          "</span></span>" +
+        "</div>" +
         '<div class="card__foot">' +
           '<a class="btn" href="' + esc(p.url) + '" target="_blank" rel="noopener noreferrer">' +
           esc(p.cta) + ICON_ARROW + "</a>" +
@@ -271,6 +275,7 @@
         // 动画播完即移除，后续筛选/搜索不再重播
         setTimeout(function () { grid.classList.remove("grid--animate"); }, 700);
       }
+      setupMarquee();
     }
 
     searchClear.hidden = !state.q;
@@ -283,6 +288,71 @@
     chipsRenderedFor = state.cat;
     renderChips();
   }
+
+  /* ---------- 过长的「使用限制」文案：无缝滚动字幕 ----------
+   * 文案过长时不折行也不省略号，改为横向循环滚动：
+   * 把文案复制一份、中间留 4 个空格宽作间隔，向前滚过一个周期后
+   * 画面与起点完全一致，因此可以无缝接回开头（不会像回弹那样跳一下）。
+   * 每滚完一个周期停顿 MARQUEE_HOLD 毫秒再继续，鼠标移上去暂停。
+   * 用 Web Animations API 而非 CSS 关键帧——因为周期长度随文案变化，
+   * 而「停顿」时长固定，两者比例无法预先写成固定百分比的关键帧。*/
+  var MARQUEE_SPEED = 30;  // px/s，约合每秒 2.4 个汉字，比正常阅读速度更慢
+  var MARQUEE_HOLD = 2000; // 每滚完一个周期后的停顿时长
+  var reduceMotion = window.matchMedia &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function setupMarquee() {
+    var nodes = grid.querySelectorAll(".cond");
+    for (var i = 0; i < nodes.length; i++) {
+      (function (cond) {
+        var clip = cond.querySelector(".cond__clip");
+        var track = cond.querySelector(".cond__track");
+        var chunk = cond.querySelector(".cond__chunk");
+        var text = cond.querySelector(".cond__text");
+        if (!clip || !track || !chunk || !text) return;
+
+        // 复位上一轮的状态（卡片会被整块重建，但缩放窗口时需要重算）
+        if (cond._anim) { cond._anim.cancel(); cond._anim = null; }
+        cond.classList.remove("cond--scroll", "cond--wrap");
+        track.style.transform = "";
+        while (track.children.length > 1) track.removeChild(track.lastChild);
+
+        // 减少动态效果：折行显示，不做滚动
+        if (reduceMotion) { cond.classList.add("cond--wrap"); return; }
+
+        // 以裁剪视口宽度为基准，判断文字是否超出
+        if (text.getBoundingClientRect().width - clip.clientWidth <= 1) return;
+
+        // 复制一份接在后面，屏幕阅读器忽略副本
+        var clone = chunk.cloneNode(true);
+        clone.setAttribute("aria-hidden", "true");
+        track.appendChild(clone);
+
+        // 一个周期 = 单份文案宽度 + 尾部间隔
+        var period = chunk.getBoundingClientRect().width;
+        var scrollMs = Math.max(1500, (period / MARQUEE_SPEED) * 1000);
+        var total = scrollMs + MARQUEE_HOLD;
+
+        cond.classList.add("cond--scroll");
+        var anim = track.animate([
+          { transform: "translateX(0)", offset: 0 },
+          { transform: "translateX(" + (-period) + "px)", offset: scrollMs / total },
+          { transform: "translateX(" + (-period) + "px)", offset: 1 }
+        ], { duration: total, iterations: Infinity, easing: "linear" });
+        cond._anim = anim;
+
+        cond.addEventListener("mouseenter", function () { anim.pause(); });
+        cond.addEventListener("mouseleave", function () { anim.play(); });
+      })(nodes[i]);
+    }
+  }
+
+  // 卡片宽度随视口变化，超长文案的滚动距离也要跟着重算
+  var marqueeResizeTimer = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(marqueeResizeTimer);
+    marqueeResizeTimer = setTimeout(setupMarquee, 220);
+  });
 
   /* ---------- 事件绑定 ---------- */
   // 搜索（轻量防抖 + 中文输入法组词抑制）

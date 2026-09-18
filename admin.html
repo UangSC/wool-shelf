@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>羊毛货架 · 卡片管理台</title>
-  <link rel="stylesheet" href="css/style.css?v=23">
+  <link rel="stylesheet" href="css/style.css?v=30">
   <style>
     body { background: var(--bg); }
 
@@ -248,7 +248,7 @@
     </div>
   </div>
 
-  <script src="js/data.js?v=23"></script>
+  <script src="js/data.js?v=30"></script>
   <script>
   (function () {
     "use strict";
@@ -456,7 +456,7 @@
             codeBlock +
           "</div>" +
           '<div class="tags">' + tags + "</div>" +
-          '<div class="cond">' + ICON_INFO + "<span>" + esc(p.condition || "") + "</span></div>" +
+          '<div class="cond">' + ICON_INFO + '<span class="cond__clip"><span class="cond__track"><span class="cond__chunk"><span class="cond__text">' + esc(p.condition || "") + "</span></span></span></span></div>" +
           '<div class="card__foot">' +
             '<a class="btn" href="' + esc(p.url) + '" target="_blank" rel="noopener noreferrer">' +
             esc(p.cta || "去薅一下") + ICON_ARROW + "</a>" +

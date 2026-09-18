@@ -430,7 +430,10 @@ a { color: inherit; }
 /* 福利高亮区：所有卡片等高 */
 .perk {
   margin-top: 10px;
-  height: 158px;
+  /* flex 撑满卡片剩余空间，让同一行卡片的福利框底边对齐；
+   * 用 min-height 而非固定 height，说明较长的卡片才不会把邀请码挤出框外 */
+  flex: 1 0 auto;
+  min-height: 158px;
   padding: 11px 12px;
   background: var(--amber-bg);
   border: 1px solid var(--amber-border);
@@ -687,16 +690,39 @@ a { color: inherit; }
 }
 .tag--paid:hover { background: linear-gradient(180deg, #f26262 0%, #e23434 55%, #c12121 100%); }
 
-/* 限制条件 */
+/* 限制条件：过长时不换行也不省略，超出部分以滚动字幕呈现（逻辑见 app.js）*/
 .cond {
   margin-top: 10px;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 5px;
   font-size: 12.5px;
   color: var(--text-3);
   line-height: 1.45;
 }
+.cond > svg { flex: none; }
+/* 裁剪视口从图标右侧开始，文字滚动时才不会压到图标上 */
+.cond__clip {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+/* 滚动轨道：宽度取内容实际宽度，不受裁剪视口约束 */
+.cond__track {
+  display: flex;
+  width: max-content;
+}
+/* 单份文案 + 尾部间隔（4 个空格宽），两份首尾相接即可无缝循环 */
+.cond__chunk {
+  flex: none;
+  padding-right: 4ch;
+}
+.cond__text { white-space: nowrap; }
+/* 无障碍：系统开启「减少动态效果」时回退为折行显示，保证内容仍可读 */
+.cond--wrap .cond__clip { overflow: visible; }
+.cond--wrap .cond__track { display: block; width: auto; }
+.cond--wrap .cond__chunk { padding-right: 0; }
+.cond--wrap .cond__text { white-space: normal; }
 .cond svg { flex: 0 0 auto; margin-top: 2px; }
 
 /* 卡片底部：CTA */
