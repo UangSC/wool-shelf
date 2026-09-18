@@ -90,6 +90,22 @@ window.PERKS = [
     "featured": true
   },
   {
+    "id": "monkeycode",
+    "name": "MonkeyCode",
+    "logo": "assets/monkeycode.png",
+    "color": "#0a9c69",
+    "cat": "开发平台",
+    "desc": "浏览器里就能用的 AI 开发平台，任务跑在云端环境中。",
+    "perk": "每日 1000 万 Token 免费额度",
+    "note": "免费套餐长期可用，含 1C/4G 云端开发环境与基础模型；每日签到送 100 积分，邀好友送 5000 积分。",
+    "code": "",
+    "condition": "免费套餐长期可用 · 注册即用，无需安装",
+    "tags": ["免费", "云服务", "每日签到"],
+    "url": "https://monkeycode-ai.com/?ic=01a0b561-e739-7b34-9f8b-d36f4944da62",
+    "cta": "去薅一下",
+    "perkLabel": "💡 站点特色"
+  },
+  {
     "id": "anyrouter",
     "name": "AnyRouter",
     "logo": "assets/anyrouter.png",
