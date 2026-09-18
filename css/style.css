@@ -335,6 +335,7 @@ a { color: inherit; }
 }
 
 .logo {
+  position: relative;
   flex: 0 0 auto;
   width: 42px;
   height: 42px;
@@ -352,7 +353,17 @@ a { color: inherit; }
 }
 .logo--glyph { font-size: 19px; font-weight: 700; }
 .logo--img { background: var(--surface); box-shadow: var(--shadow-sm); }
-.logo__img { width: 100%; height: 100%; object-fit: contain; display: block; }
+/* 绝对定位让图片盒子恒等于图标框尺寸：
+ * 若用 height:100%，遇到竖长比例的图标（如 130×150 的 SVG）百分比高度无法解析，
+ * 浏览器会退回按宽高比推算高度，导致图片超出图标框被裁切 */
+.logo__img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
 
 .card__title { min-width: 0; flex: 1 1 auto; }
 .card__title h3 {
@@ -837,10 +848,10 @@ a { color: inherit; }
   box-shadow: 0 18px 44px -16px rgba(20, 28, 48, .3), 0 6px 16px -8px rgba(20, 28, 48, .16);
   padding: 18px 18px 0;
   overflow: hidden;
-  /* 入场：右下滑入回弹 → 落位 → 左右摇摆；同时叠两轮红色扩散环抓余光 */
+  /* 入场：右下滑入回弹 → 落位 → 左右摇摆；同时叠四轮红色扩散环抓余光 */
   animation:
     noticeIn 2.1s var(--ease) both,
-    noticePulse 1.2s ease-out .5s 2 forwards;
+    noticePulse 1s ease-out .4s 4 forwards;
 }
 .notice-bubble[hidden] { display: none; }
 .notice-bubble.out { animation: noticeOut .22s var(--ease) both; }
