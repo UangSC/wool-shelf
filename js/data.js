@@ -31,8 +31,8 @@ window.PERKS = [
     "color": "#0f766e",
     "cat": "国产模型",
     "desc": "国产模型推理服务平台，支持大部分主流国产模型。",
-    "perk": "7 天共 10 亿 Token",
-    "note": "每 5 小时重置 2 亿，7 天共 10 亿 Token。",
+    "perk": "注册即送 2 亿 Token",
+    "note": "每 5 小时重置 2 亿额度，可循环领取。",
     "code": "",
     "condition": "免费额度 · 每 5 小时重置",
     "tags": ["API", "国产模型", "邮箱注册"],
@@ -88,6 +88,22 @@ window.PERKS = [
     "cta": "查看福利",
     "perkLabel": "💡 站点特色",
     "featured": true
+  },
+  {
+    "id": "zerocat",
+    "name": "ZeroCat",
+    "logo": "assets/zerocat.png",
+    "color": "#fd5300",
+    "cat": "付费中转",
+    "desc": "分组丰富的付费中转，覆盖 GPT、Claude 与国产模型，按次计费。",
+    "perk": "特惠分组 · 单价实惠",
+    "note": "设有特惠分组，按次计费更划算；支持每日签到领取额度。",
+    "code": "",
+    "condition": "付费中转 · 价格以官网分组为准",
+    "tags": ["付费中转", "多模型", "每日签到"],
+    "url": "https://zero.cat/sign-up?aff=8Otd",
+    "cta": "去薅一下",
+    "perkLabel": "💡 站点特色"
   },
   {
     "id": "monkeycode",
