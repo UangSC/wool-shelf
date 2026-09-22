@@ -474,16 +474,31 @@ a { color: inherit; }
   padding-top: 9px;
   border-top: 1px dashed #e8d5a8;
   display: flex;
+  flex-wrap: nowrap;
   align-items: center;
   gap: 8px;
   font-size: 12px;
   color: var(--amber-label);
 }
+.code__label { flex: none; }
+/* 邀请码滚动视口：占据标签与复制按钮之间的空间，超长时裁剪并滚动 */
+.code__clip {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+}
+.code__track {
+  display: flex;
+  width: max-content;
+}
+.code__chunk { flex: none; }
+.perk__code--scroll .code__chunk { padding-right: 2ch; }
 .perk__code code {
   font-family: "SF Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
   font-size: 13px;
   font-weight: 700;
   letter-spacing: .05em;
+  white-space: nowrap;
   color: #6d3b04;
   background: #fff;
   border: 1px solid var(--amber-border);
@@ -491,7 +506,7 @@ a { color: inherit; }
   padding: 2px 8px;
 }
 .copy {
-  margin-left: auto;
+  flex: none;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -503,9 +518,11 @@ a { color: inherit; }
   color: #8a5a10;
   font-size: 11.5px;
   font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
   transition: all .16s var(--ease);
 }
+.copy__text { white-space: nowrap; }
 .copy:hover { background: #fdf3df; border-color: #e0bd76; color: #6d3b04; }
 .copy:active { transform: scale(.95); }
 .copy.copied {

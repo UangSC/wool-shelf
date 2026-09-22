@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>羊毛货架 · 卡片管理台</title>
-  <link rel="stylesheet" href="css/style.css?v=34">
+  <link rel="stylesheet" href="css/style.css?v=37">
   <style>
     body { background: var(--bg); }
 
@@ -248,7 +248,7 @@
     </div>
   </div>
 
-  <script src="js/data.js?v=34"></script>
+  <script src="js/data.js?v=37"></script>
   <script>
   (function () {
     "use strict";
@@ -420,7 +420,8 @@
       "软件下载": "model", "教程": "email", "动漫": "holographic",
       "特效": "holographic", "音频": "holographic", "AI 应用": "holographic",
       "新客优惠": "gold", "云服务": "model", "对象存储": "email",
-      "邀请有礼": "holographic", "每日签到": "vip"
+      "邀请有礼": "holographic", "每日签到": "vip",
+      "GPT": "holographic", "Grok": "holographic"
     };
     var ICON_INFO = '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 11v6M12 7.6v.9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
     var ICON_ARROW = '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
@@ -434,7 +435,8 @@
       var logoCls = "logo" + (isImg ? " logo--img" : " logo--glyph");
       var codeBlock = "";
       if (p.code) {
-        codeBlock = '<div class="perk__code"><span>邀请码</span><code>' + esc(p.code) + '</code>' +
+        codeBlock = '<div class="perk__code"><span class="code__label">邀请码</span>' +
+          '<span class="code__clip"><span class="code__track"><span class="code__chunk"><code>' + esc(p.code) + '</code></span></span></span>' +
           '<button class="copy" type="button">复制</button></div>';
       }
       var tags = (p.tags || []).map(function (t) {

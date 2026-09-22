@@ -170,7 +170,9 @@
     "云服务": "model",
     "对象存储": "email",
     "邀请有礼": "holographic",
-    "每日签到": "vip"
+    "每日签到": "vip",
+    "GPT": "holographic",
+    "Grok": "holographic"
   };
 
   /* ---------- 卡片模板 ---------- */
@@ -185,8 +187,10 @@
     var codeBlock = "";
     if (p.code) {
       codeBlock =
-        '<div class="perk__code"><span>邀请码</span>' +
-        '<code>' + esc(p.code) + '</code>' +
+        '<div class="perk__code"><span class="code__label">邀请码</span>' +
+        '<span class="code__clip"><span class="code__track">' +
+          '<span class="code__chunk"><code>' + esc(p.code) + '</code></span>' +
+        '</span></span>' +
         '<button class="copy" type="button" data-code="' + esc(p.code) + '" aria-label="复制邀请码 ' + esc(p.code) + '">' +
         '<svg viewBox="0 0 24 24" width="12" height="12" aria-hidden="true">' +
         '<rect x="9" y="9" width="11" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="1.9"/>' +
@@ -301,49 +305,64 @@
   var reduceMotion = window.matchMedia &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
+  // 通用无缝滚动：文案超出裁剪视口时复制一份、向前滚过一个周期后无缝接回。
+  // host 上缓存 _anim，便于窗口缩放时取消重算；鼠标移上去暂停。
+  function marqueeOne(host, sel) {
+    var clip = host.querySelector(sel.clip);
+    var track = host.querySelector(sel.track);
+    var chunk = host.querySelector(sel.chunk);
+    var measure = host.querySelector(sel.measure);
+    if (!clip || !track || !chunk || !measure) return;
+
+    // 复位上一轮的状态（卡片会被整块重建，但缩放窗口时需要重算）
+    if (host._anim) { host._anim.cancel(); host._anim = null; }
+    host.classList.remove(sel.scrollCls);
+    if (sel.wrapCls) host.classList.remove(sel.wrapCls);
+    track.style.transform = "";
+    while (track.children.length > 1) track.removeChild(track.lastChild);
+
+    // 减少动态效果：不滚动（条件行折行显示，邀请码保持裁剪）
+    if (reduceMotion) { if (sel.wrapCls) host.classList.add(sel.wrapCls); return; }
+
+    // 以裁剪视口宽度为基准，判断内容是否超出
+    if (measure.getBoundingClientRect().width - clip.clientWidth <= 1) return;
+
+    // 复制一份接在后面，屏幕阅读器忽略副本
+    var clone = chunk.cloneNode(true);
+    clone.setAttribute("aria-hidden", "true");
+    track.appendChild(clone);
+
+    // 一个周期 = 单份内容宽度 + 尾部间隔
+    var period = chunk.getBoundingClientRect().width;
+    var scrollMs = Math.max(1500, (period / MARQUEE_SPEED) * 1000);
+    var total = scrollMs + MARQUEE_HOLD;
+
+    host.classList.add(sel.scrollCls);
+    var anim = track.animate([
+      { transform: "translateX(0)", offset: 0 },
+      { transform: "translateX(" + (-period) + "px)", offset: scrollMs / total },
+      { transform: "translateX(" + (-period) + "px)", offset: 1 }
+    ], { duration: total, iterations: Infinity, easing: "linear" });
+    host._anim = anim;
+
+    host.addEventListener("mouseenter", function () { anim.pause(); });
+    host.addEventListener("mouseleave", function () { anim.play(); });
+  }
+
   function setupMarquee() {
-    var nodes = grid.querySelectorAll(".cond");
-    for (var i = 0; i < nodes.length; i++) {
-      (function (cond) {
-        var clip = cond.querySelector(".cond__clip");
-        var track = cond.querySelector(".cond__track");
-        var chunk = cond.querySelector(".cond__chunk");
-        var text = cond.querySelector(".cond__text");
-        if (!clip || !track || !chunk || !text) return;
-
-        // 复位上一轮的状态（卡片会被整块重建，但缩放窗口时需要重算）
-        if (cond._anim) { cond._anim.cancel(); cond._anim = null; }
-        cond.classList.remove("cond--scroll", "cond--wrap");
-        track.style.transform = "";
-        while (track.children.length > 1) track.removeChild(track.lastChild);
-
-        // 减少动态效果：折行显示，不做滚动
-        if (reduceMotion) { cond.classList.add("cond--wrap"); return; }
-
-        // 以裁剪视口宽度为基准，判断文字是否超出
-        if (text.getBoundingClientRect().width - clip.clientWidth <= 1) return;
-
-        // 复制一份接在后面，屏幕阅读器忽略副本
-        var clone = chunk.cloneNode(true);
-        clone.setAttribute("aria-hidden", "true");
-        track.appendChild(clone);
-
-        // 一个周期 = 单份文案宽度 + 尾部间隔
-        var period = chunk.getBoundingClientRect().width;
-        var scrollMs = Math.max(1500, (period / MARQUEE_SPEED) * 1000);
-        var total = scrollMs + MARQUEE_HOLD;
-
-        cond.classList.add("cond--scroll");
-        var anim = track.animate([
-          { transform: "translateX(0)", offset: 0 },
-          { transform: "translateX(" + (-period) + "px)", offset: scrollMs / total },
-          { transform: "translateX(" + (-period) + "px)", offset: 1 }
-        ], { duration: total, iterations: Infinity, easing: "linear" });
-        cond._anim = anim;
-
-        cond.addEventListener("mouseenter", function () { anim.pause(); });
-        cond.addEventListener("mouseleave", function () { anim.play(); });
-      })(nodes[i]);
+    var conds = grid.querySelectorAll(".cond");
+    for (var i = 0; i < conds.length; i++) {
+      marqueeOne(conds[i], {
+        clip: ".cond__clip", track: ".cond__track", chunk: ".cond__chunk",
+        measure: ".cond__text", scrollCls: "cond--scroll", wrapCls: "cond--wrap"
+      });
+    }
+    var codes = grid.querySelectorAll(".perk__code");
+    for (var j = 0; j < codes.length; j++) {
+      marqueeOne(codes[j], {
+        clip: ".code__clip", track: ".code__track", chunk: ".code__chunk",
+        measure: "code", scrollCls: "perk__code--scroll", wrapCls: ""
+      });
     }
   }
 
