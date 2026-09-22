@@ -46,8 +46,10 @@ jobs:
 
       - name: JavaScript 语法检查
         run: |
+          node --check js/shared.js
           node --check js/data.js
           node --check js/app.js
+          node --check js/admin.js
           echo "✅ 语法检查通过"
 
       - name: 校验数据完整性与资源引用

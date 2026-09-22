@@ -15,28 +15,12 @@
   var stats = document.getElementById("stats");
   var toasts = document.getElementById("toasts");
 
-  /* ---------- 工具 ---------- */
-  function esc(s) {
-    return String(s).replace(/[&<>"']/g, function (c) {
-      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
-    });
-  }
-  var ICON_INFO =
-    '<svg viewBox="0 0 24 24" width="13" height="13" aria-hidden="true">' +
-    '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.8"/>' +
-    '<path d="M12 11v6M12 7.6v.9" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>';
-  var ICON_ARROW =
-    '<svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">' +
-    '<path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" ' +
-    'stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  var ICON_SHARE =
-    '<svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">' +
-    '<path d="M12 3.5v10" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>' +
-    '<path d="m7.5 8.5 4.5-5 4.5 5" fill="none" stroke="currentColor" stroke-width="1.9" ' +
-    'stroke-linecap="round" stroke-linejoin="round"/>' +
-    '<path d="M5 15v3.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V15" ' +
-    'fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>' +
-    '</svg>';
+  /* ---------- 共用常量与工具（来自 js/shared.js） ---------- */
+  var esc = window.PerksShared.esc;
+  var TAG_CLASS = window.PerksShared.TAG_CLASS;
+  var ICON_INFO = window.PerksShared.ICONS.info;
+  var ICON_ARROW = window.PerksShared.ICONS.arrow;
+  var ICON_SHARE = window.PerksShared.ICONS.share;
 
   /* ---------- Toast ---------- */
   function toast(msg, icon) {
@@ -119,66 +103,10 @@
     });
   }
 
-  /* ---------- 标签样式映射：平台/类型的独立配色 ---------- */
-  var TAG_CLASS = {
-    "API": "api",
-    "官方应用": "official",
-    "公益中转": "green",
-    "付费中转": "paid",
-    "国产模型": "model",
-    "GitHub": "github",
-    "Linux do": "linuxdo",
-    "公益": "green",
-    "付费": "paid",
-    "按量付费": "paid",
-    "国模": "model",
-    "免费": "blackgold",
-    "全模态": "blackgold",
-    "邮箱注册": "email",
-    "教育邮箱": "edu",
-    "VIP 签到": "vip",
-    "无注册限制": "nolimit",
-    "多模型": "holographic",
-    "语音": "holographic",
-    "音乐": "holographic",
-    "音效": "holographic",
-    "订阅制": "vip",
-    "字体": "model",
-    "商用授权": "green",
-    "图片处理": "model",
-    "PDF": "email",
-    "工具箱": "model",
-    "格式转换": "email",
-    "画图": "model",
-    "免注册": "nolimit",
-    "ICO 生成": "email",
-    "开发者": "linuxdo",
-    "台词搜索": "model",
-    "影视": "holographic",
-    "视频": "holographic",
-    "图片": "model",
-    "需注册": "nolimit",
-    "AI 生图": "holographic",
-    "游戏素材": "green",
-    "软件下载": "model",
-    "教程": "email",
-    "动漫": "holographic",
-    "特效": "holographic",
-    "音频": "holographic",
-    "AI 应用": "holographic",
-    "新客优惠": "gold",
-    "云服务": "model",
-    "对象存储": "email",
-    "邀请有礼": "holographic",
-    "每日签到": "vip",
-    "GPT": "holographic",
-    "Grok": "holographic"
-  };
-
   /* ---------- 卡片模板 ---------- */
   function cardHTML(p) {
     // 图片图标优先，否则用文字 Logo
-    var isImg = /\.(png|jpe?g|svg|ico|webp)(\?|$)/i.test(p.logo);
+    var isImg = window.PerksShared.isImageLogo(p.logo);
     var logoHtml = isImg
       ? '<img class="logo__img" src="' + esc(p.logo) + '" alt="' + esc(p.name) + ' 图标" loading="lazy" decoding="async">'
       : esc(p.logo);
