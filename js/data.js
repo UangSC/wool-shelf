@@ -18,7 +18,7 @@ window.PERKS = [
     "perk": "注册即送 1 亿 Token",
     "note": "进群反馈问题，额度耗尽可申请补充。",
     "code": "",
-    "condition": "且薅且珍惜",
+    "condition": "免费额度 · 额度耗尽可申请补充",
     "tags": ["API", "国产模型", "邮箱注册"],
     "url": "https://api.atria-asi.ai",
     "cta": "立即领取",
@@ -26,7 +26,7 @@ window.PERKS = [
   },
   {
     "id": "workbuddy",
-    "name": "WorkBuddy",
+    "name": "WorkBuddy 国际版",
     "logo": "assets/workbuddy.png",
     "color": "#0d9488",
     "cat": "官方应用",
@@ -91,21 +91,37 @@ window.PERKS = [
     "featured": true
   },
   {
+    "id": "mcgrox",
+    "name": "Grox",
+    "logo": "assets/mcgrox.png",
+    "color": "#3875f6",
+    "cat": "付费中转",
+    "desc": "一个 Key 调用多模型的 API 中转，覆盖 Claude、GPT、Gemini、Antigravity，智能路由自动故障转移。",
+    "perk": "填邀请码 · 进群送日卡",
+    "note": "注册填写邀请码，进群绑定邮箱即送日卡；支持订阅与按量两种计费。",
+    "code": "FZJVH4YKBDP9",
+    "condition": "付费中转 · 日卡以官网/群内政策为准",
+    "tags": ["付费中转", "多模型", "邀请有礼"],
+    "url": "https://www.mcgrox.top/register?aff=FZJVH4YKBDP9",
+    "cta": "去薅一下",
+    "perkLabel": "🎁 新用户福利",
+    "featured": true
+  },
+  {
     "id": "ilovetoken",
     "name": "Love Token",
     "logo": "assets/ilovetoken.png",
     "color": "#7c3aed",
     "cat": "付费中转",
     "desc": "一个 Key 调用多模型的 API 网关，覆盖 GPT、Claude、Gemini，支持按量与订阅两种计费。",
-    "perk": "GPT 倍率低至 0.12x～0.18x",
+    "perk": "GPT 倍率较低",
     "note": "换 Key 与 Base URL 即可迁移，价格随模型与上游浮动，实时价见控制台。",
     "code": "B5HQQS4S4VRR",
     "condition": "付费中转 · 实时价以官网为准",
     "tags": ["付费中转", "多模型", "GPT"],
     "url": "https://ilovetoken.top/register?aff=B5HQQS4S4VRR",
     "cta": "去薅一下",
-    "perkLabel": "💡 站点特色",
-    "featured": true
+    "perkLabel": "💡 站点特色"
   },
   {
     "id": "zerocat",

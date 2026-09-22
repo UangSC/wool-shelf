@@ -460,10 +460,29 @@
   var noticeBar = document.getElementById("noticeBar");
   var noticeTimer = null;
 
+  // QQ 悬浮气泡：弹窗显示时上移让位到弹窗上方，弹窗消失后回到右下角贴角
+  var qqFab = document.getElementById("qqFab");
+  var QQ_BASE = 20;   // 贴角时距底部
+  var QQ_GAP = 14;    // 与弹窗之间的间隙
+  function placeQQ() {
+    if (!qqFab) return;
+    if (noticeBubble.hidden || noticeBubble.classList.contains("out")) {
+      qqFab.style.bottom = QQ_BASE + "px";
+    } else {
+      // 弹窗底边 18px + 自身高度 + 间隙，让气泡稳稳浮在弹窗正上方。
+      // 用 offsetHeight（布局高度）而非 getBoundingClientRect().height：
+      // 后者会受入场动画的 scale/transform 影响，刚出现时量到的是被缩小的高度，
+      // 导致气泡上移不够被弹窗盖住；offsetHeight 不受 transform 影响，一步到位。
+      var h = noticeBubble.offsetHeight;
+      qqFab.style.bottom = (18 + h + QQ_GAP) + "px";
+    }
+  }
+
   function closeNotice() {
     if (noticeBubble.hidden) return;
     clearTimeout(noticeTimer);
     noticeBubble.classList.add("out");
+    placeQQ(); // 弹窗开始退场，气泡立即回落到贴角位
     setTimeout(function () {
       noticeBubble.hidden = true;
       noticeBubble.classList.remove("out");
@@ -471,10 +490,43 @@
       noticeBar.style.animation = "none";
       void noticeBar.offsetWidth;
       noticeBar.style.animation = "";
+      placeQQ();
     }, 220);
   }
 
   document.getElementById("noticeClose").addEventListener("click", closeNotice);
+  // 弹窗高度随视口宽度变化（移动端会占满宽而变高），跟随重算气泡位置
+  window.addEventListener("resize", function () {
+    clearTimeout(placeQQ._t);
+    placeQQ._t = setTimeout(placeQQ, 150);
+  });
+
+  // QQ 头像点击：切换二维码常驻显示（再次点击恢复「悬停显示/移开消失」）
+  (function () {
+    var qqLink = document.getElementById("qqLink");
+    if (!qqFab || !qqLink) return;
+    qqLink.addEventListener("click", function () {
+      var pinned = qqFab.classList.toggle("qq-fab--pinned");
+      qqLink.setAttribute("aria-expanded", pinned ? "true" : "false");
+      // 取消常驻时同时移除焦点，否则 :focus-within 会让卡片继续显示
+      if (!pinned) qqLink.blur();
+    });
+    // 点击页面其它区域时收起常驻卡片
+    document.addEventListener("click", function (e) {
+      if (qqFab.classList.contains("qq-fab--pinned") && !qqFab.contains(e.target)) {
+        qqFab.classList.remove("qq-fab--pinned");
+        qqLink.setAttribute("aria-expanded", "false");
+      }
+    });
+    // Esc 收起
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && qqFab.classList.contains("qq-fab--pinned")) {
+        qqFab.classList.remove("qq-fab--pinned");
+        qqLink.setAttribute("aria-expanded", "false");
+        qqLink.blur();
+      }
+    });
+  })();
 
   /* ---------- 隐蔽入口：页脚图标 1.5s 内连续点按 5 次进入管理台 ---------- */
   (function () {
@@ -519,4 +571,8 @@
   // 页面加载后显示友情提醒
   noticeBubble.hidden = false;
   noticeTimer = setTimeout(closeNotice, 30000);
+  // offsetHeight 不受入场动画 transform 影响，可一步定位到最终高度，无需等动画结束。
+  // 保留一次延迟校正，兜底字体/换行等极端情况下的高度微调。
+  placeQQ();
+  setTimeout(placeQQ, 1150);
 })();

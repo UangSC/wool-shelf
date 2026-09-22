@@ -1024,6 +1024,160 @@ a { color: inherit; }
   .notice-bubble { right: 10px; bottom: 10px; width: calc(100vw - 20px); }
 }
 
+/* ============ 联系站长：QQ 头像悬浮气泡 ============ */
+.qq-fab {
+  position: fixed;
+  right: 22px;
+  /* 底部偏移交给 JS 控制：默认贴角，弹窗出现时上移让位 */
+  bottom: 20px;
+  z-index: 190; /* 略低于提醒弹窗(200)，让弹窗始终压在上层 */
+  width: 56px;
+  height: 56px;
+  /* 底部偏移由 JS 直接写 inline bottom（弹窗出现时上移让位），transition 负责平滑过渡。
+     注意：本元素不能挂 keyframes 动画，否则运行中的动画会压制 inline bottom 无法定位；
+     漂浮动画放到内层 .qq-fab__ava 上。 */
+  transition: bottom .34s var(--ease);
+}
+.qq-fab__link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform .2s var(--ease);
+}
+.qq-fab__link:hover { transform: translateY(-3px) scale(1.06); }
+.qq-fab__link:hover .qq-fab__ava,
+.qq-fab:hover .qq-fab__ava { animation-play-state: paused; }
+.qq-fab__link:active { transform: scale(.96); }
+.qq-fab__link:focus-visible { outline: 2px solid var(--primary); outline-offset: 4px; }
+
+.qq-fab__ava {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #12b7f5; /* QQ 蓝，兼作图片加载前/失败的兜底底色 */
+  border: 2.5px solid #fff;
+  box-shadow: 0 10px 26px -8px rgba(18, 122, 210, .55), 0 4px 10px -4px rgba(20, 28, 48, .2);
+  animation: qqFloat 3.4s ease-in-out infinite;
+}
+.qq-fab__ava img { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* 头像加载失败时，用 QQ 蓝底 + 企鹅字样兜底 */
+.qq-fab__ava--fallback::after {
+  content: "QQ";
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: #fff;
+  font-weight: 800;
+  font-size: 18px;
+  letter-spacing: .04em;
+}
+
+/* 右下角小徽标：一枚对话气泡，暗示「点击可聊天」 */
+.qq-fab__badge {
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #12b7f5;
+  color: #fff;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px -1px rgba(18, 122, 210, .5);
+}
+
+/* 悬停弹出的二维码卡片：从右下角（头像处）缓缓展开，移开时缓缓收回 */
+.qq-fab__card {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 14px);
+  width: 200px;
+  padding: 14px 14px 11px;
+  background: #fff;
+  border: 1px solid #e4e8f0;
+  border-radius: 14px;
+  box-shadow: 0 18px 44px -16px rgba(20, 28, 48, .32), 0 6px 16px -8px rgba(20, 28, 48, .18);
+  text-align: center;
+  transform-origin: bottom right;
+  /* 收起态：缩小、透明、不可交互 */
+  opacity: 0;
+  transform: scale(.6) translateY(10px);
+  pointer-events: none;
+  transition: opacity .26s var(--ease), transform .26s var(--ease);
+}
+/* 卡片底部朝向头像的小三角 */
+.qq-fab__card::after {
+  content: "";
+  position: absolute;
+  right: 20px;
+  bottom: -7px;
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-right: 1px solid #e4e8f0;
+  border-bottom: 1px solid #e4e8f0;
+  transform: rotate(45deg);
+}
+.qq-fab__card-title {
+  margin: 0 0 9px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-1, #1c2438);
+}
+.qq-fab__qr {
+  display: block;
+  width: 100%;
+  border-radius: 8px;
+  background: #f5f7fa;
+}
+.qq-fab__card-sub {
+  margin: 9px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-3, #8a92a6);
+}
+/* 悬停头像或卡片本身、键盘聚焦、或点击常驻(.qq-fab--pinned)时展开 */
+.qq-fab:hover .qq-fab__card,
+.qq-fab:focus-within .qq-fab__card,
+.qq-fab--pinned .qq-fab__card {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  pointer-events: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .qq-fab__card { transition: opacity .2s linear; transform: none; }
+  .qq-fab:hover .qq-fab__card,
+  .qq-fab:focus-within .qq-fab__card,
+  .qq-fab--pinned .qq-fab__card { transform: none; }
+}
+
+@keyframes qqFloat {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 -6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .qq-fab { animation: none; }
+}
+
+@media (max-width: 560px) {
+  .qq-fab { right: 14px; width: 50px; height: 50px; }
+  .qq-fab__tip { display: none; }
+}
+
 /* ============ 响应式 ============ */
 @media (max-width: 1080px) {
   .search { width: 250px; }
