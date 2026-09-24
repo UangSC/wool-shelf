@@ -119,8 +119,7 @@ window.PERKS = [
     "tags": ["付费中转", "GPT", "订阅制"],
     "url": "https://flatrouter.com/register?ref=LCWLFBYCS79D",
     "cta": "去薅一下",
-    "perkLabel": "💡 站点特色",
-    "featured": true
+    "perkLabel": "💡 站点特色"
   },
   {
     "id": "ilovetoken",
