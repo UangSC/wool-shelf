@@ -179,10 +179,10 @@ window.PERKS = [
     "desc": "运营已久的公益老站，稳定可靠，速度较慢，注册有邮箱或社区等级限制。",
     "perk": "$125 额度",
     "note": "注册 $50 + 链接 $50 + 签到 $25 = $125。",
-    "code": "ziut",
+    "code": "ZKIC",
     "condition": "仅限教育邮箱，或 LinuxDo 2 级以上用户",
     "tags": ["公益中转", "Linux do", "教育邮箱"],
-    "url": "https://anyrouter.top/register?aff=ziut",
+    "url": "https://anyrouter.top/register?aff=ZKIC",
     "cta": "立即领取"
   },
   {
