@@ -100,6 +100,9 @@
       if (state.cat !== "全部" && p.cat !== state.cat) return false;
       if (!q) return true;
       return haystack(p).indexOf(q) !== -1;
+    }).sort(function (a, b) {
+      // 推荐卡片优先；同组内保留 data.js 中的手动顺序
+      return Number(Boolean(b.featured)) - Number(Boolean(a.featured));
     });
   }
 

@@ -25,6 +25,22 @@ window.PERKS = [
     "featured": true
   },
   {
+    "id": "ykkk",
+    "name": "YKKK机场",
+    "logo": "assets/ykkk.jpg",
+    "color": "#2563eb",
+    "cat": "机场服务",
+    "desc": "科学上网高质量机场，线路与体验以官网实际情况为准。",
+    "perk": "高质量机场服务",
+    "note": "通过专属链接注册，套餐与活动以官网页面为准。",
+    "code": "JdHGgSqo",
+    "condition": "服务内容、套餐与使用规则以官网为准",
+    "tags": ["机场服务", "科学上网", "邀请有礼"],
+    "url": "https://panel.ykkk.best/#/register?code=JdHGgSqo",
+    "cta": "立即注册",
+    "featured": true
+  },
+  {
     "id": "workbuddy",
     "name": "WorkBuddy 国际版",
     "logo": "assets/workbuddy.png",
@@ -37,8 +53,7 @@ window.PERKS = [
     "condition": "限新用户 · 奖励以官网政策为准",
     "tags": ["官方应用", "邀请有礼", "每日签到"],
     "url": "https://workbuddy.ai/invite?code=EZFLGCH3",
-    "cta": "立即领取",
-    "featured": true
+    "cta": "立即领取"
   },
   {
     "id": "agentrouter",
@@ -613,21 +628,5 @@ window.PERKS = [
     "url": "https://www.ypojie.com/",
     "cta": "去薅一下",
     "perkLabel": "💡 站点特色"
-  },
-  {
-    "id": "ykkk",
-    "name": "YKKK机场",
-    "logo": "assets/ykkk.jpg",
-    "color": "#2563eb",
-    "cat": "机场服务",
-    "desc": "科学上网高质量机场，线路与体验以官网实际情况为准。",
-    "perk": "高质量机场服务",
-    "note": "通过专属链接注册，套餐与活动以官网页面为准。",
-    "code": "JdHGgSqo",
-    "condition": "服务内容、套餐与使用规则以官网为准",
-    "tags": ["机场服务", "科学上网", "邀请有礼"],
-    "url": "https://panel.ykkk.best/#/register?code=JdHGgSqo",
-    "cta": "立即注册",
-    "featured": true
   }
 ];
