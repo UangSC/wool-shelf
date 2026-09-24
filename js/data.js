@@ -41,6 +41,22 @@ window.PERKS = [
     "featured": true
   },
   {
+    "id": "ykkk",
+    "name": "YKKK机场",
+    "logo": "Y",
+    "color": "#2563eb",
+    "cat": "机场服务",
+    "desc": "科学上网高质量机场，线路与体验以官网实际情况为准。",
+    "perk": "高质量机场服务",
+    "note": "通过专属链接注册，套餐与活动以官网页面为准。",
+    "code": "JdHGgSqo",
+    "condition": "服务内容、套餐与使用规则以官网为准",
+    "tags": ["机场服务", "科学上网", "邀请有礼"],
+    "url": "https://panel.ykkk.best/#/register?code=JdHGgSqo",
+    "cta": "立即注册",
+    "featured": true
+  },
+  {
     "id": "agentrouter",
     "name": "AgentRouter",
     "logo": "assets/agentrouter.ico",
