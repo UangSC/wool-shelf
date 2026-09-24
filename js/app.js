@@ -191,7 +191,131 @@
     return html;
   }
 
-  function render() {
+  var DEAL_DURATION = 520;
+  var DEAL_STAGGER = 34;
+  var DEAL_MAX_DELAY = 340;
+  var CATEGORY_DURATION = 420;
+  var CATEGORY_STAGGER = 26;
+  var CATEGORY_MAX_DELAY = 130;
+  var categoryTransition = { animations: [], leaving: [], timers: [] };
+
+  function captureCardRects() {
+    var cards = grid.querySelectorAll(".card");
+    var rects = {};
+    for (var i = 0; i < cards.length; i++) {
+      var id = cards[i].getAttribute("data-id");
+      if (id) rects[id] = { node: cards[i], rect: cards[i].getBoundingClientRect() };
+    }
+    return rects;
+  }
+
+  function cancelCardTransition() {
+    var current = categoryTransition;
+    for (var i = 0; i < current.animations.length; i++) {
+      try { current.animations[i].cancel(); } catch (e) {}
+    }
+    for (var j = 0; j < current.timers.length; j++) clearTimeout(current.timers[j]);
+    for (var k = 0; k < current.leaving.length; k++) {
+      if (current.leaving[k].parentNode) current.leaving[k].parentNode.removeChild(current.leaving[k]);
+    }
+    var entering = grid.querySelectorAll(".card--category-enter");
+    for (var n = 0; n < entering.length; n++) {
+      entering[n].classList.remove("card--category-enter");
+      entering[n].style.removeProperty("--category-delay");
+    }
+    categoryTransition = { animations: [], leaving: [], timers: [] };
+  }
+
+  function transitionLater(run, fn, delay) {
+    run.timers.push(setTimeout(function () {
+      if (categoryTransition === run) fn();
+    }, delay));
+  }
+
+  function finishAnimation(animation, run) {
+    animation.finished.then(function () {
+      if (categoryTransition === run) animation.cancel();
+    }, function () {});
+  }
+
+  function playCategoryTransition(oldRects, list) {
+    var run = { animations: [], leaving: [], timers: [] };
+    categoryTransition = run;
+    var nextIds = {};
+    for (var i = 0; i < list.length; i++) nextIds[list[i].id] = true;
+
+    var oldIds = Object.keys(oldRects);
+    for (var j = 0; j < oldIds.length; j++) {
+      var old = oldRects[oldIds[j]];
+      if (nextIds[oldIds[j]]) continue;
+
+      var leaving = old.node.cloneNode(true);
+      var leaveDelay = Math.min(j * CATEGORY_STAGGER, CATEGORY_MAX_DELAY);
+      leaving.classList.remove("grid--animate", "card--category-enter");
+      leaving.classList.add("card--leaving");
+      leaving.setAttribute("aria-hidden", "true");
+      leaving.style.left = old.rect.left + "px";
+      leaving.style.top = old.rect.top + "px";
+      leaving.style.width = old.rect.width + "px";
+      leaving.style.height = old.rect.height + "px";
+      leaving.style.animationDelay = leaveDelay + "ms";
+      document.body.appendChild(leaving);
+      run.leaving.push(leaving);
+      (function (clone, delay) {
+        transitionLater(run, function () {
+          if (clone.parentNode) clone.parentNode.removeChild(clone);
+        }, CATEGORY_DURATION + delay + 60);
+      })(leaving, leaveDelay);
+    }
+
+    var cards = grid.querySelectorAll(".card");
+    for (var k = 0; k < cards.length; k++) {
+      var card = cards[k];
+      var id = card.getAttribute("data-id");
+      var previous = oldRects[id];
+      if (previous) {
+        var nextRect = card.getBoundingClientRect();
+        var dx = previous.rect.left - nextRect.left;
+        var dy = previous.rect.top - nextRect.top;
+        if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+          var move = card.animate([
+            { transform: "translate3d(" + dx + "px, " + dy + "px, 0)" },
+            { transform: "translate3d(0, 0, 0)" }
+          ], {
+            duration: CATEGORY_DURATION,
+            easing: "cubic-bezier(.22, .61, .36, 1)",
+            fill: "both"
+          });
+          run.animations.push(move);
+          finishAnimation(move, run);
+        }
+      } else {
+        var enterDelay = Math.min(k * CATEGORY_STAGGER, CATEGORY_MAX_DELAY);
+        card.style.setProperty("--category-delay", enterDelay + "ms");
+        card.classList.add("card--category-enter");
+        (function (newCard, delay) {
+          transitionLater(run, function () {
+            newCard.classList.remove("card--category-enter");
+            newCard.style.removeProperty("--category-delay");
+          }, CATEGORY_DURATION + delay + 60);
+        })(card, enterDelay);
+      }
+    }
+
+    transitionLater(run, function () {
+      var active = grid.querySelectorAll(".card--category-enter");
+      for (var m = 0; m < active.length; m++) {
+        active[m].classList.remove("card--category-enter");
+        active[m].style.removeProperty("--category-delay");
+      }
+    }, CATEGORY_DURATION + CATEGORY_MAX_DELAY + 80);
+  }
+
+  function render(mode) {
+    var categoryMode = mode === "category";
+    cancelCardTransition();
+    if (animated) grid.classList.remove("grid--animate");
+    var oldRects = categoryMode && !reduceMotion ? captureCardRects() : null;
     var list = filtered();
     syncChips();
     renderResultBar(list);
@@ -206,13 +330,22 @@
       grid.innerHTML = list.map(cardCached).join("");
       if (!animated) {
         animated = true;
-        grid.classList.add("grid--animate");
-        // 动画播完即移除，后续筛选/搜索不再重播
-        setTimeout(function () { grid.classList.remove("grid--animate"); }, 700);
+        var cards = grid.querySelectorAll(".card");
+        for (var i = 0; i < cards.length; i++) {
+          cards[i].style.setProperty("--deal-delay", reduceMotion ? "0ms" : Math.min(i * DEAL_STAGGER, DEAL_MAX_DELAY) + "ms");
+        }
+        if (!reduceMotion) {
+          grid.classList.add("grid--animate");
+          // 动画播完即移除，后续筛选/搜索不再重播
+          setTimeout(function () { grid.classList.remove("grid--animate"); }, DEAL_DURATION + DEAL_MAX_DELAY + 60);
+        }
+      } else if (categoryMode && !reduceMotion) {
+        playCategoryTransition(oldRects || {}, list);
       }
       setupMarquee();
     }
 
+    if (categoryMode && !reduceMotion && !list.length) playCategoryTransition(oldRects || {}, list);
     searchClear.hidden = !state.q;
   }
 
@@ -342,7 +475,7 @@
     var chip = e.target.closest(".chip");
     if (!chip) return;
     state.cat = chip.dataset.cat;
-    render();
+    render("category");
   });
 
   // 卡片内交互：分享链接 + 复制邀请码
@@ -381,7 +514,7 @@
     state.q = "";
     state.cat = "全部";
     searchInput.value = "";
-    render();
+    render("category");
     searchInput.focus();
     toast("已清空全部筛选条件", "🧹");
   });

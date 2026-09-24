@@ -266,12 +266,62 @@ a { color: inherit; }
   transition: transform .2s var(--ease), box-shadow .2s var(--ease), border-color .2s var(--ease);
 }
 
-/* 仅首次加载时播放入场动画，避免每次筛选都重播 */
-.grid--animate .card { animation: cardIn .34s var(--ease) both; }
+/* 首次加载时逐张发牌，后续筛选不重复播放 */
+.grid--animate .card {
+  animation: cardDeal .52s var(--ease) both;
+  animation-delay: var(--deal-delay, 0ms);
+}
 
-@keyframes cardIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: none; }
+@keyframes cardDeal {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0) rotate(2deg) scale(.96);
+  }
+  58% {
+    opacity: 1;
+    transform: translate3d(0, -3px, 0) rotate(-.35deg) scale(1.01);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotate(0) scale(1);
+  }
+}
+
+/* 切换分类：新卡片从下方进入；旧卡片由 JS 生成固定定位副本后离开 */
+.card--category-enter {
+  animation: cardCategoryEnter .42s var(--ease) both;
+  animation-delay: var(--category-delay, 0ms);
+}
+
+@keyframes cardCategoryEnter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0) scale(.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+.card--leaving {
+  position: fixed;
+  z-index: 20;
+  margin: 0;
+  pointer-events: none;
+  transform-origin: center center;
+  animation: cardLeave .42s var(--ease) both;
+}
+
+@keyframes cardLeave {
+  from {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1) rotate(0);
+  }
+  to {
+    opacity: 0;
+    transform: translate3d(0, -22px, 0) scale(.94) rotate(-1.5deg);
+  }
 }
 
 .card::after {
@@ -1205,6 +1255,14 @@ a { color: inherit; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+  .grid--animate .card,
+  .card--category-enter,
+  .card--leaving {
+    animation-delay: 0ms !important;
+    animation-duration: .01ms !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 /* —— 渲染性能优化（不改变视觉）—— */
