@@ -89,23 +89,6 @@ window.PERKS = [
     "featured": true
   },
   {
-    "id": "flatrouter",
-    "name": "FlatRouter",
-    "logo": "assets/flatrouter.png",
-    "color": "#2563eb",
-    "cat": "付费中转",
-    "desc": "GPT 专线付费中转，官方兼容协议，改一个 base_url 即可迁移 Codex、Cursor 等客户端。",
-    "perk": "新人订阅仅需 19.9 元",
-    "note": "月付低至 19.9 元，按官方模型价 × 平台系数计费，实付约为官方价的一折。",
-    "code": "LCWLFBYCS79D",
-    "condition": "付费订阅 · 具体档位以官网为准",
-    "tags": ["付费中转", "GPT", "订阅制"],
-    "url": "https://flatrouter.com/register?ref=LCWLFBYCS79D",
-    "cta": "去薅一下",
-    "perkLabel": "💡 站点特色",
-    "featured": true
-  },
-  {
     "id": "mcgrox",
     "name": "Grox",
     "logo": "assets/mcgrox.png",
@@ -120,6 +103,23 @@ window.PERKS = [
     "url": "https://www.mcgrox.top/register?aff=FZJVH4YKBDP9",
     "cta": "去薅一下",
     "perkLabel": "🎁 新用户福利",
+    "featured": true
+  },
+  {
+    "id": "flatrouter",
+    "name": "FlatRouter",
+    "logo": "assets/flatrouter.png",
+    "color": "#2563eb",
+    "cat": "付费中转",
+    "desc": "GPT 专线付费中转，官方兼容协议，改一个 base_url 即可迁移 Codex、Cursor 等客户端。",
+    "perk": "新人订阅仅需 19.9 元",
+    "note": "月付低至 19.9 元，按官方模型价 × 平台系数计费，实付约为官方价的一折。",
+    "code": "LCWLFBYCS79D",
+    "condition": "付费订阅 · 具体档位以官网为准",
+    "tags": ["付费中转", "GPT", "订阅制"],
+    "url": "https://flatrouter.com/register?ref=LCWLFBYCS79D",
+    "cta": "去薅一下",
+    "perkLabel": "💡 站点特色",
     "featured": true
   },
   {
